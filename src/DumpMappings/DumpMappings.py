@@ -1,9 +1,9 @@
 import sys
 import ctypes
-
-from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtWidgets import QMessageBox
-
+from PyQt6.QtCore import QCoreApplication
+from PyQt6.QtWidgets import QMessageBox
+import mobase
+import os
 
 class MappingDumper(mobase.IPlugin):
     def __init__(self):
@@ -60,7 +60,7 @@ class MappingDumper(mobase.IPlugin):
     def settings(self):
         """
         List of user-accessible settings for the plugin.
-        May return empty list.
+        May return an empty list.
         """
         return []
 
@@ -85,7 +85,6 @@ class MappingDumper(mobase.IPlugin):
             f.write(buffer.value.decode("cp1252"))
 
         return True
-
 
 def createPlugin():
     return MappingDumper()

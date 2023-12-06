@@ -1,11 +1,12 @@
-from PyQt5.QtCore import QCoreApplication, qCritical, QDir, qDebug
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtCore import QCoreApplication, QDir, qDebug
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QMessageBox
 
 import os
 import shutil
 import subprocess
 import winreg
+import mobase
 
 class FixGameRegKey(mobase.IPluginTool):
 
@@ -21,7 +22,7 @@ class FixGameRegKey(mobase.IPluginTool):
         "SkyrimSE":   (winreg.HKEY_LOCAL_MACHINE, "Software\\Bethesda Softworks\\Skyrim Special Edition", "Installed Path"),
         "SkyrimVR":   (winreg.HKEY_LOCAL_MACHINE, "Software\\Bethesda Softworks\\Skyrim VR",              "Installed Path"),
         "TTW":        (winreg.HKEY_LOCAL_MACHINE, "Software\\Bethesda Softworks\\FalloutNV",              "Installed Path"),
-        }
+    }
 
     def __init__(self):
         super().__init__()
@@ -35,7 +36,7 @@ class FixGameRegKey(mobase.IPluginTool):
     # IPlugin
     def init(self, organizer):
         self._organizer = organizer
-        if (not self._organizer.onAboutToRun(lambda appName: self._checkInstallPath())):
+        if not self._organizer.onAboutToRun(lambda appName: self._checkInstallPath()):
             qCritical("Failed to register onAboutToRun callback!")
             return False
         return True
@@ -44,7 +45,7 @@ class FixGameRegKey(mobase.IPluginTool):
         return "Fix Game Registry Key"
 
     def author(self):
-        return "LostDragonist"
+        return "LostDragonist & Miss Corruption"
 
     def description(self):
         return self.__tr("Checks the game's installation path registry key and fixes as needed")
@@ -52,12 +53,10 @@ class FixGameRegKey(mobase.IPluginTool):
     def version(self):
         return mobase.VersionInfo(1, 0, 0, 0)
 
-
-
     def settings(self):
         return [
             mobase.PluginSetting("silent", self.__tr("Fix the registry automatically"), False),
-            ]
+        ]
 
     # IPluginTool
     def displayName(self):
@@ -74,7 +73,7 @@ class FixGameRegKey(mobase.IPluginTool):
 
     def display(self):
         if self._isActive():
-           self._checkInstallPath()
+            self._checkInstallPath()
 
     def _isActive(self):
         if self._getGameRegistryInfo() is None:
@@ -91,22 +90,24 @@ class FixGameRegKey(mobase.IPluginTool):
 
         gameDirectory = self._organizer.managedGame().gameDirectory().canonicalPath()
         installPath = self._readInstallPath()
-        if (gameDirectory != installPath):
-            if (gameDirectory == ''):
+        if gameDirectory != installPath:
+            if gameDirectory == '':
                 gameDirectory = self.__tr('<invalid path>')
-            if (installPath == ''):
+            if installPath == '':
                 installPath = self.__tr('<invalid path>')
-            answer = QMessageBox.question(self._parent,
-                                          self.__tr("Registry key does not match"),
-                                          self.__tr("The game's installation path in the registry does not match the managed game path in MO.\n\n"
-                                          "Registry Game Path:\n\t{}\n"
-                                          "Managed Game Path:\n\t{}\n\n"
-                                          "Change the path in the registry to match the managed game path?").format(installPath, gameDirectory),
-                                          QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
-                                          QMessageBox.Yes)
-            if (answer == QMessageBox.Yes):
+            answer = QMessageBox.question(
+                self._parent,
+                self.__tr("Registry key does not match"),
+                self.__tr(
+                    "The game's installation path in the registry does not match the managed game path in MO.\n\n"
+                    "Registry Game Path:\n\t{}\n"
+                    "Managed Game Path:\n\t{}\n\n"
+                    "Change the path in the registry to match the managed game path?").format(installPath, gameDirectory),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Yes)
+            if answer == QMessageBox.StandardButton.Yes:
                 self._writeInstallPath()
-            elif (answer == QMessageBox.Cancel):
+            elif answer == QMessageBox.StandardButton.Cancel:
                 return False
         return True
 
@@ -129,12 +130,13 @@ class FixGameRegKey(mobase.IPluginTool):
 
         # Get the registry info and check for possible problems
         key, subKey, valueName = self._getGameRegistryInfo()
-        if (key != winreg.HKEY_LOCAL_MACHINE):
+        if key != winreg.HKEY_LOCAL_MACHINE:
             qCritical("Only HKLM is supported!")
             return
 
         # Use powershell to write to the registry as admin
-        args = '\'add "{}\\{}" /v "{}" /d "{}" /f /reg:32\''.format("HKLM", subKey, valueName, gameDirectory.replace("'", "''"))
+        args = '\'add "{}\\{}" /v "{}" /d "{}" /f /reg:32\''.format(
+            "HKLM", subKey, valueName, gameDirectory.replace("'", "''"))
         cmd = ['powershell', 'Start-Process', '-Verb', 'runAs', 'reg', '-ArgumentList', args]
         try:
             si = subprocess.STARTUPINFO()

@@ -1,5 +1,6 @@
-from PyQt5.QtCore import QCoreApplication, qCritical, QDir, qDebug
-from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtCore import QCoreApplication, QDir, qDebug
+from PyQt6.QtWidgets import QMessageBox
+import mobase
 
 class LootPreventifier(mobase.IPlugin):
 
@@ -14,8 +15,8 @@ class LootPreventifier(mobase.IPlugin):
     # IPlugin
     def init(self, organizer):
         self._organizer = organizer
-        if (not self._organizer.onAboutToRun(lambda appName: self._preventLoot(appName))):
-            qCritical("Failed to register onAboutToRun callback!")
+        if not self._organizer.onAboutToRun(lambda appName: self._preventLoot(appName)):
+            qDebug("Failed to register onAboutToRun callback!")
             return False
         return True
 
@@ -23,7 +24,7 @@ class LootPreventifier(mobase.IPlugin):
         return "LOOT Preventifier"
 
     def author(self):
-        return "LostDragonist"
+        return "LostDragonist & Miss Corruption"
 
     def description(self):
         return self.__tr("Prevents the user from running LOOT")
@@ -42,10 +43,10 @@ class LootPreventifier(mobase.IPlugin):
                                  " 2. Going to the plugins tab."
                                  " 3. Selecting the LOOT Preventifier plugin."
                                  " 4. Unchecking the enabled box on the right.")
-            ]
+        ]
 
     def _preventLoot(self, appName):
-        if (appName.lower().endswith("loot.exe") or appName.lower().endswith("lootcli.exe")):
+        if appName.lower().endswith("loot.exe") or appName.lower().endswith("lootcli.exe"):
             dialog = self._organizer.pluginSetting(self.name(), "dialog")
             if dialog != '':
                 QMessageBox.information(self._parent, self.name(), dialog)

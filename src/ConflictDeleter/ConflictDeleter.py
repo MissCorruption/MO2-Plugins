@@ -1,13 +1,12 @@
-from PyQt5.QtCore import QCoreApplication, qCritical, QDir, qDebug
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox
-
+from PyQt6.QtCore import QCoreApplication, qCritical, QDir, qDebug 
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QMessageBox
+import mobase
 import os
 import pathlib
 import shutil
 import subprocess
 import time
-import winreg
 
 class ConflictDeleter(mobase.IPluginTool):
 
@@ -60,8 +59,8 @@ class ConflictDeleter(mobase.IPluginTool):
         backup_mod_name = time.strftime("ConflictDeleter_Backup_%Y_%m_%d_%H_%M_%S")
 
         # Check to see if the mod exists first
-        if self._organizer.getMod(backup_mod_name) != None:
-            QMessageBox.critical(self.__parent,
+        if self._organizer.getMod(backup_mod_name) is not None:
+            QMessageBox.critical(self._parent,
                                  self.__tr("Mod already exists!"),
                                  self.__tr("Mod \"{}\" already exists. Please run again!").format(backup_mod_name))
 
@@ -70,13 +69,13 @@ class ConflictDeleter(mobase.IPluginTool):
                                       self.__tr("Delete Conflicts?"),
                                       self.__tr("Do you want to delete all files that are overwritten by higher priority mods?\n\n"
                                                 "Backup folder: {}").format(backup_mod_name),
-                                      QMessageBox.Yes | QMessageBox.No,
-                                      QMessageBox.No)
-        if (answer != QMessageBox.Yes):
+                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                      QMessageBox.StandardButton.No)
+        if answer != QMessageBox.StandardButton.Yes:
             return False
 
         # Find files to delete
-        files_to_delete = {} # key = mod, value = file
+        files_to_delete = {}  # key = mod, value = file
 
         mods_directory = self._organizer.modsPath()
 

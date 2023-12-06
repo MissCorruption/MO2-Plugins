@@ -1,5 +1,6 @@
-from PyQt5.QtCore import qCritical, qDebug
+from PyQt6.QtCore import qDebug
 import os
+import mobase
 
 class RequiemRedirector(mobase.IPluginFileMapper):
     '''Redirect Skyrim files to assist with Requiem installs'''
@@ -15,14 +16,14 @@ class RequiemRedirector(mobase.IPluginFileMapper):
     #==============================================================
 
     def init(self, organizer):
-        self.__organizer = organizer
+        self._organizer = organizer
         return True
 
     def name(self):
         return "Requiem Installer"
 
     def author(self):
-        return "LostDragonist"
+        return "LostDragonist & Miss Corruption"
 
     def description(self):
         return self.__tr("Redirect Skyrim files to assist with Requiem installs")
@@ -58,13 +59,13 @@ class RequiemRedirector(mobase.IPluginFileMapper):
     def _redirectPlugins(self):
         result = []
 
-        gameSrc = self.__organizer.getGame("Skyrim")
-        gameDst = self.__organizer.managedGame()
-        profile = self.__organizer.profile()
-        profilePath = self.__organizer.profilePath()
+        gameSrc = self._organizer.getGame("Skyrim")
+        gameDst = self._organizer.managedGame()
+        profile = self._organizer.profile()
+        profilePath = self._organizer.profilePath()
 
         # Don't redirect Skyrim to Skyrim
-        if (gameSrc == gameDst):
+        if gameSrc == gameDst:
             return result
 
         # Redirect AppData files
@@ -81,4 +82,4 @@ class RequiemRedirector(mobase.IPluginFileMapper):
         return result
 
 def createPlugin():
-  return RequiemRedirector()
+    return RequiemRedirector()
